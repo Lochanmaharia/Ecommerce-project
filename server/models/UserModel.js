@@ -42,15 +42,21 @@ const userSchema = new mongoose.Schema({
                 isDefault: { type: Boolean, default: false },
             }
         ],
-        default: []   
+        default: []
     },
 
     isVerified: {
         type: Boolean,
         default: false
     },
-    otp:String,
-    otpExpire:Date,
+    otp: {
+        type: Number,
+        default: null
+    },
+    otpExpire: {
+        type: Date,
+        default: null
+    },
     status: {
         type: Boolean,
         default: true

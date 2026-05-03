@@ -17,6 +17,6 @@ export const config = {
     matcher: [
         // Match protected patterns; exclude public paths
         '/checkout',
-        '/profile',
+        '/profile'
     ],
 };
