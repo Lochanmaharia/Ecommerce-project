@@ -1,6 +1,6 @@
+
 import { client } from "@/utils/helper";
-
-
+import { cookies } from "next/headers";
 
 const getProducts = async (query = {}) => {
     const filter = new URLSearchParams();
@@ -22,13 +22,13 @@ const getProducts = async (query = {}) => {
 }
 
 const getcategories = async (query = {}) => {
+  
     const filter = new URLSearchParams();
     if (query.id) filter.append("id", query.id)
     if (query.status) filter.append("status", query.status)
     if (query.limit) filter.append("limit", query.limit)
     if (query.is_home) filter.append("is_home", query.is_home)
-
-    const response = await client.get(`category?.${filter.toString()}`);
+    const response = await client.get(`category?${filter.toString()}`);
     if (!response.data.success) {
         throw new Error(response.data.message || "API Fail")
     }
@@ -85,7 +85,27 @@ const getProductById = async (id) => {
     return response.data
 };
 
-export { getcategories, getcategoriesById, getbrands, getcolors, getProducts,getProductById };
+const getMe = async () => {
+    const cookieStore = await cookies();
+    let token = cookieStore.get("jwt")?.value || null;
+    if (!token) {
+        return {user:null};
+    }
+    const response = await client.get("user/get", {
+        headers: {
+            Authorization: token
+        }
+    })
+    if (!response.data.success) {
+        throw new Error(response.data.message || "API Fail")
+    }
+    
+    return response.data
+    
+
+}
+
+export { getcategories, getcategoriesById, getbrands, getcolors, getProducts, getProductById,getMe };
 
 
 

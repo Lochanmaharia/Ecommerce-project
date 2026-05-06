@@ -4,13 +4,13 @@ const sendOtpMail = require("../utils/sendOtpMail");
 const Cryptr = require('cryptr');
 const cryptr = new Cryptr(process.env.SECRET_KEY);
 const { sendCreated, sendBadRequest, sendNotFound, sendServerError, sendConflict, sendSuccess, sendOk } = require("../utils/response");
+const generateToken = require("../utils/generateToken");
 
 // CREATE API
 const register = async (req, res) => {
     try {
 
         const { name, email, password } = req.body;
-        console.log(req.body)
         if (!name || !email || !password) {
             return sendBadRequest(res, "All fields are required")
         }
@@ -21,7 +21,6 @@ const register = async (req, res) => {
         }
         const encryptedPassword = cryptr.encrypt(password);
         const otp = Math.floor(100000 + Math.random() * 900000);
-        console.log(otp);
 
         const user = await UserModel.create({
             name,
@@ -31,7 +30,6 @@ const register = async (req, res) => {
             otpExpire: Date.now() + 3 * 60 * 1000
         });
         const mailResponse = await sendOtpMail(email, otp);
-        console.log(mailResponse);
         return sendCreated(res, "User registered successfully", {
             id: user._id,
             name: user.name,
@@ -48,7 +46,7 @@ const login = async (req, res) => {
     try {
 
         const { email, password } = req.body;
-        console.log(req.body)
+
         if (!email || !password) {
             return sendBadRequest(res, "All fields are required")
         }
@@ -62,8 +60,16 @@ const login = async (req, res) => {
 
         if (decryptedPass !== password) {
             return sendBadRequest(res, "Wrong Password");
-
         }
+        const token = generateToken(user._id);
+
+        res.cookie('jwt', token, {
+            maxAge: 30 * 24 * 60 * 60 * 1000, // Expires in 30 days
+            httpOnly: true,
+            secure: false,
+            sameSite: 'lax'
+        });
+
 
         return sendSuccess(res, "User logged in successfully", {
             id: user._id,
@@ -127,4 +133,47 @@ const resetOtp = async (req, res) => {
     }
 }
 
-module.exports = { register, verifyEmail, resetOtp, login }
+const logout = async (req, res) => {
+    try {
+        res.clearCookie('jwt');
+        res.sendSuccess(res)
+
+    } catch (error) {
+        return sendServerError(res, error);
+    }
+}
+
+
+const getMe = async (req, res) => {
+    try {
+        res.status(200).json({
+            message: "User Find",
+            success: true,
+            user: req.user
+        })
+
+    } catch (error) {
+        return sendServerError(res, error);
+    }
+}
+
+
+const addAddress = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const address = req.body;
+    
+        const user = await UserModel.findById({_id:userId});
+        user.addresses.push(address);
+
+        await user.save();
+
+        res.json({ success: true, addresses: user.addresses });
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({ error: err.message });
+    }
+};
+
+
+module.exports = { register, verifyEmail, resetOtp, login ,getMe,logout,addAddress};

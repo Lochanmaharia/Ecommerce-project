@@ -13,8 +13,7 @@ const ColorModel = require("../models/ColorModel");
 // CREATE API
 const create = async (req, res) => {
     try {
-        console.log(req.body);
-
+        // console.log(req.body);
         const {
             name, slug, price, discount, finalPrice, color_ids,
             short_description, long_description, category_id, brand_id
@@ -25,7 +24,7 @@ const create = async (req, res) => {
         }
 
         const thumbnail = req.files.thumbnail;
-        console.log(thumbnail, "thumbnail");
+        // console.log(thumbnail, "thumbnail");
 
         if (!name || !slug || !price || !discount || !finalPrice ||
             !short_description || !long_description ||

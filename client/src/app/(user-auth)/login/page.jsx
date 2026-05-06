@@ -59,7 +59,7 @@ const Login = () => {
                             original_total,
                             items
                         }))
-
+f
                         router.push("/")
 
                     } catch (error) {
